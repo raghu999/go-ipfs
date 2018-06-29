@@ -123,16 +123,13 @@ func (r *fakeResponse) Send(errCh chan<- error) {
 	defer close(errCh)
 
 	out := r.Output()
-	if out == nil {
+
+	// don't emit nil or Single{nil}
+	if out == nil || out == (cmds.Single{nil}) {
 		return
 	}
 
-	if ch, ok := out.(chan interface{}); ok {
-		out = (<-chan interface{})(ch)
-	}
-
-	err := r.re.Emit(out)
-	errCh <- err
+	errCh <- r.re.Emit(out)
 	return
 }
 
